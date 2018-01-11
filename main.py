@@ -35,13 +35,13 @@ def train(model):
             epoch_start_time = time.time()
             print('-----------------------------------------------------------------------------')
             print('Epoch: {}'.format(epoch + 1))
-            X_train, Y_train = randomize(x_train, y_train)
-            step_count = int(len(X_train) / args.batch_size)
+            x_train, y_train = randomize(x_train, y_train)
+            step_count = int(len(x_train) / args.batch_size)
             for step in range(step_count):
                 start = step * args.batch_size
                 end = (step + 1) * args.batch_size
-                X_batch, Y_batch = get_next_batch(X_train, Y_train, start, end)
-                feed_dict_batch = {model.X: X_batch, model.Y: Y_batch, model.mask_with_labels: True}
+                x_batch, y_batch = get_next_batch(x_train, y_train, start, end)
+                feed_dict_batch = {model.X: x_batch, model.Y: y_batch, model.mask_with_labels: True}
                 _, acc_batch, loss_batch = sess.run([model.train_op, model.accuracy, model.total_loss],
                                                     feed_dict=feed_dict_batch)
                 acc_batch_all = np.append(acc_batch_all, acc_batch)
@@ -51,10 +51,10 @@ def train(model):
                     mean_acc = np.mean(acc_batch_all)
                     mean_loss = np.mean(loss_batch_all)
                     print(
-                        "Step {0}, training loss: {1:.5f}, training accuracy: {2:.01%}".format(step, mean_loss,
-                                                                                               mean_acc))
-                    summary = sess.run(model.summary_all, feed_dict=feed_dict_batch)
-                    train_writer.add_summary(summary, sum_count * args.tr_disp_sum)
+                        "Step {0}, training loss: {1:.5f}, training accuracy: {2:.01f}%".format(step, mean_loss,
+                                                                                                mean_acc))
+                    summary_tr = sess.run(model.summary_(mean_acc, mean_loss), feed_dict=feed_dict_batch)
+                    train_writer.add_summary(summary_tr, sum_count * args.tr_disp_sum)
                     sum_count += 1
                     acc_batch_all = loss_batch_all = np.array([])
 

@@ -15,7 +15,7 @@ class CapsNet:
         self.loss()
         self.accuracy_calc()
         self.train_op()
-        self._summary([], [])
+        # self.summary_([], [])
 
     def build_network(self):
         with tf.variable_scope('Conv1_layer'):
@@ -25,7 +25,7 @@ class CapsNet:
         with tf.variable_scope('PrimaryCaps_layer'):
             conv2 = tf.layers.conv2d(conv1, name="conv2", **conv2_params)
             # [batch_size, 6, 6, 256]
-            caps1_raw = tf.reshape(conv2, (args.batch_size, -1, caps1_n_dims, 1), name="caps1_raw")
+            caps1_raw = tf.reshape(conv2, (args.batch_size, caps1_n_caps, caps1_n_dims, 1), name="caps1_raw")
             # [batch_size, 1152, 8, 1]
             caps1_output = squash(caps1_raw, name="caps1_output")
             # [batch_size, 1152, 8, 1]
@@ -107,11 +107,10 @@ class CapsNet:
         self.accuracy = tf.reduce_sum(tf.cast(correct_prediction, tf.float32))
 
     def train_op(self):
-        self.global_step = tf.Variable(0, name='global_step', trainable=False)
-        self.optimizer = tf.train.AdamOptimizer()
-        self.train_op = self.optimizer.minimize(self.total_loss, global_step=self.global_step)
+        optimizer = tf.train.AdamOptimizer()
+        self.optimizer.minimize(self.total_loss, name="training_op")
 
-    def _summary(self, mean_acc, mean_loss):
+    def summary_(self, mean_acc, mean_loss):
         recon_img = tf.reshape(self.decoder_output, shape=(args.batch_size, args.img_w, args.img_h, args.n_ch))
         summary_list = [tf.summary.scalar('loss/margin_loss', self.margin_loss),
                         tf.summary.scalar('loss/reconstruction_loss', self.reconstruction_err),
@@ -119,4 +118,4 @@ class CapsNet:
                         tf.summary.scalar('accuracy', mean_acc),
                         tf.summary.image('original_img', self.X),
                         tf.summary.image('reconstruction_img', recon_img)]
-        self.summary_all = tf.summary.merge(summary_list)
+        return tf.summary.merge(summary_list)
