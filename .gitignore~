@@ -1,0 +1,7 @@
+sand.py
+*.gz
+*.xml
+*.iml
+*.idea/
+
+

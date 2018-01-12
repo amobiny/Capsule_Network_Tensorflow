@@ -15,7 +15,7 @@ class CapsNet:
         self.loss()
         self.accuracy_calc()
         self.train_op()
-        # self.summary_([], [])
+        self.summary_()
 
     def build_network(self):
         with tf.variable_scope('Conv1_layer'):
@@ -40,7 +40,6 @@ class CapsNet:
             # [batch_size, 10, 16, 1]
 
         # Decoder
-        # 1. Do masking, how:
         with tf.variable_scope('Masking'):
             epsilon = 1e-9
             self.v_length = tf.sqrt(tf.reduce_sum(tf.square(caps2_output), axis=2, keep_dims=True) + epsilon)
@@ -97,25 +96,23 @@ class CapsNet:
         # 2. The reconstruction loss
         orgin = tf.reshape(self.X, shape=(args.batch_size, -1))
         squared = tf.square(self.decoder_output - orgin)
-        self.reconstruction_err = tf.reduce_sum(squared)
+        self.reconstruction_err = tf.reduce_mean(squared)
 
         # 3. Total loss
         self.total_loss = self.margin_loss + args.alpha * self.reconstruction_err
 
     def accuracy_calc(self):
         correct_prediction = tf.equal(tf.to_int32(tf.argmax(self.Y, axis=1)), self.y_pred)
-        self.accuracy = tf.reduce_sum(tf.cast(correct_prediction, tf.float32))
+        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     def train_op(self):
         optimizer = tf.train.AdamOptimizer()
-        self.optimizer.minimize(self.total_loss, name="training_op")
+        self.train_op = optimizer.minimize(self.total_loss, name="training_op")
 
-    def summary_(self, mean_acc, mean_loss):
+    def summary_(self):
         recon_img = tf.reshape(self.decoder_output, shape=(args.batch_size, args.img_w, args.img_h, args.n_ch))
-        summary_list = [tf.summary.scalar('loss/margin_loss', self.margin_loss),
-                        tf.summary.scalar('loss/reconstruction_loss', self.reconstruction_err),
-                        tf.summary.scalar('loss/total_loss', mean_loss),
-                        tf.summary.scalar('accuracy', mean_acc),
-                        tf.summary.image('original_img', self.X),
-                        tf.summary.image('reconstruction_img', recon_img)]
-        return tf.summary.merge(summary_list)
+        summary_list = [tf.summary.scalar('Loss/margin_loss', self.margin_loss),
+                        tf.summary.scalar('Loss/reconstruction_loss', self.reconstruction_err),
+                        tf.summary.image('original', self.X),
+                        tf.summary.image('reconstructed', recon_img)]
+        self.summary_now = tf.summary.merge(summary_list)

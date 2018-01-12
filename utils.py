@@ -1,3 +1,5 @@
+import h5py
+import os
 from config import args
 import tensorflow as tf
 from network_params import *
@@ -128,3 +130,53 @@ def routing(inputs, b_ij, out_caps_dim):
                 b_ij += u_produce_v
     return tf.squeeze(v_j, axis=1)
     # [batch_size, 10, 16, 1]
+
+
+def save_to():
+    if not os.path.exists(args.results):
+        os.mkdir(args.results)
+    if args.mode == 'train':
+        train_path = args.results + 'train.csv'
+        val_path = args.results + 'validation.csv'
+
+        if os.path.exists(train_path):
+            os.remove(train_path)
+        if os.path.exists(val_path):
+            os.remove(val_path)
+
+        f_train = open(train_path, 'w')
+        f_train.write('step,accuracy,loss\n')
+        f_val = open(val_path, 'w')
+        f_val.write('epoch,accuracy,loss\n')
+        return f_train, f_val
+    else:
+        test_path = args.results + '/test.csv'
+        if os.path.exists(test_path):
+            os.remove(test_path)
+        f_test = open(test_path, 'w')
+        f_test.write('accuracy,loss\n')
+        return f_test
+
+
+def load_and_save_to(epoch, num_train_batch):
+    last_saved_step = (epoch * num_train_batch) - ((epoch * num_train_batch) % args.tr_disp_sum)
+
+    train_path = args.results + 'train.csv'
+    val_path = args.results + 'validation.csv'
+    f_train = open(train_path, 'a')
+    f_val = open(val_path, 'a')
+    return f_train, f_val
+
+
+def evaluate(sess, model, x, y):
+    acc_all = loss_all = np.array([])
+    num_batch = y.shape[0] / args.batch_size
+    for i in range(num_batch):
+        start_val = i * args.batch_size
+        end_val = start_val + args.batch_size
+        x_b, y_b = get_next_batch(x, y, start_val, end_val)
+        acc_batch, loss_batch = sess.run([model.accuracy, model.total_loss],
+                                         feed_dict={model.X: x_b, model.Y: y_b})
+        acc_all = np.append(acc_all, acc_batch)
+        loss_all = np.append(loss_all, loss_batch)
+    return np.mean(acc_all), np.mean(loss_all)
