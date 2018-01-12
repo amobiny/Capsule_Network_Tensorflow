@@ -12,7 +12,7 @@ parser.add_argument('--lambda_val', default=0.5, help='Down-weighting parameter 
 parser.add_argument('--alpha', default=.392, help='Regularization coefficient to scale down the reconstruction loss')
 
 # For training
-parser.add_argument('--mode', default='train', help='train or test')
+parser.add_argument('--mode', default='train', help='train, test or visualize')
 parser.add_argument('--batch_size', default=128, help='Batch size')
 parser.add_argument('--epoch', default=50, help='Total number of training epochs')
 parser.add_argument('--iter_routing', default=3, help='Number of routing iterations')
@@ -27,11 +27,12 @@ parser.add_argument('--img_h', default=28)
 parser.add_argument('--n_ch', default=1, help='Number of input image channels')
 
 # Environment and result saving setting
-parser.add_argument('--restore_training', default=False, help='Restores the last trained model to resume training')
+parser.add_argument('--restore_training', default=True, help='Restores the last trained model to resume training')
 parser.add_argument('--checkpoint_path', default='./saved_model/', help='path for saving the model checkpoints')
 parser.add_argument('--log_dir', default='./log_dir/', help='logs directory (to save graph and summaries)')
 parser.add_argument('--results', default='./results/', help='path for saving the results')
 parser.add_argument('--tr_disp_sum', default=100, help='The frequency of saving train results (step)')
+parser.add_argument('--n_samples', default=5, help='Number of sample images to be saved in visualize mode')
 args = parser.parse_args()
 
 # Parameters of Conv1_layer

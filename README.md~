@@ -13,8 +13,8 @@ The main changes include:
 > 1. The Capslayer class is removed as I found it to be unnecessary at this level. This makes the whole code shorter and more understandable.
 > 2. Hard-coded values (such as the number of capsules, hidden units, etc.) are all extracted and are accessible through ``config.py`` file. Therefore, making changes in the network is much more convenient.
 > 3. Summary writers are modified. Liao's code writes the loss and accuracy only for the final batch after a certain desired steps. Here, it's modified to write the average loss and accuracy values which is what we should exactly look at.
-> 4. __Masking__ procedure is modified. This code is much easier to understand how the masking changes between trai and test. 
-> 5. __Visualize__ mode is added which helps to plot the reconstructed sample images and visualize the network prediction performance. 
+> 4. Masking procedure is modified. This code is much easier to understand how the masking changes between trai and test. 
+> 5. 
 
 
 

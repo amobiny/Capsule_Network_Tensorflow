@@ -2,15 +2,13 @@ from CapsNet import CapsNet
 import tensorflow as tf
 import numpy as np
 from config import args
-from utils import load_data, randomize, get_next_batch, save_to, load_and_save_to, evaluate
+from utils import load_data, randomize, get_next_batch, save_to, load_and_save_to, evaluate, reconstruct_plot
 import os
 
 
 def train(model):
-    x_train, y_train, x_valid, y_valid = load_data(dataset='mnist', mode='train')
+    x_train, y_train, x_valid, y_valid = load_data(dataset=args.dataset, mode='train')
     num_train_batch = int(y_train.shape[0] / args.batch_size)
-    if not os.path.exists(args.checkpoint_path):
-        os.makedirs(args.checkpoint_path)
     if not os.path.exists(args.checkpoint_path + args.dataset):
         os.makedirs(args.checkpoint_path + args.dataset)
 
@@ -20,7 +18,7 @@ def train(model):
             ckpt = tf.train.get_checkpoint_state(args.checkpoint_path + args.dataset)
             saver.restore(sess, ckpt.model_checkpoint_path)
             start_epoch = int(str(ckpt.model_checkpoint_path).split('-')[-1])
-            fd_train, fd_val = load_and_save_to(start_epoch, num_train_batch)
+            fd_train, fd_val, best_loss_val = load_and_save_to(start_epoch, num_train_batch)
         else:
             saver = tf.train.Saver(tf.global_variables())
             tf.global_variables_initializer().run()
@@ -67,7 +65,7 @@ def train(model):
 
             # Run validation after each epoch
             acc_val, loss_val = evaluate(sess, model, x_valid, y_valid)
-            fd_val.write(str(epoch+1) + ',' + str(acc_val) + ',' + str(loss_val) + '\n')
+            fd_val.write(str(epoch + 1) + ',' + str(acc_val) + ',' + str(loss_val) + '\n')
             fd_val.flush()
             print('-----------------------------------------------------------------------------')
             print("Epoch #{0}, Validation loss: {1:.4f}, Validation accuracy: {2:.01%}{3}".format(
@@ -95,12 +93,28 @@ def test(model):
         print("Test loss: {0:.4f}, Test accuracy: {1:.01%}".format(loss_test, acc_test))
 
 
+def visualize(model, n_samples=5):
+    x_test, y_test = load_data(dataset=args.dataset, mode='test')
+    sample_images, sample_labels = x_test[:args.batch_size], y_test[:args.batch_size]
+    saver = tf.train.Saver()
+    ckpt = tf.train.get_checkpoint_state(args.checkpoint_path + args.dataset)
+    with tf.Session() as sess:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        feed_dict_samples = {model.X: sample_images, model.Y: sample_labels}
+        decoder_out, y_pred = sess.run([model.decoder_output, model.y_pred],
+                                       feed_dict=feed_dict_samples)
+
+    reconstruct_plot(sample_images, sample_labels, decoder_out, y_pred, n_samples)
+
+
 def main(_):
     model = CapsNet()
     if args.mode == 'train':
         train(model)
     elif args.mode == 'test':
         test(model)
+    elif args.mode == 'visualize':
+        visualize(model, n_samples=args.n_samples)
 
 
 if __name__ == "__main__":

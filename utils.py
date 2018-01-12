@@ -4,6 +4,7 @@ from config import *
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def load_mnist(mode='train'):
@@ -12,9 +13,9 @@ def load_mnist(mode='train'):
     :param mode: train or test
     :return: train and validation images and labels in train mode, test images and labels in test mode
             x: [#images, width, height, n_channels]
-            y: [#images, 10] (one_hot_encoded)
+            y: [#images, #classes=10] (one_hot_encoded)
     """
-    mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+    mnist = input_data.read_data_sets("data/mnist", one_hot=True)
     if mode == 'train':
         x_train, y_train, x_valid, y_valid = mnist.train.images, mnist.train.labels, \
                                              mnist.validation.images, mnist.validation.labels
@@ -24,11 +25,38 @@ def load_mnist(mode='train'):
     elif mode == 'test':
         x_test, y_test = mnist.test.images, mnist.test.labels
         x_test = x_test.reshape((-1, args.img_w, args.img_h, args.n_ch)).astype(np.float32)
-    return x_test, y_test
+        return x_test, y_test
 
 
 def load_fashion_mnist(mode='train'):
-    pass
+    path = os.path.join('data', 'fashion-mnist')
+    if mode == 'train':
+        fd = open(os.path.join(path, 'train-images-idx3-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        x = loaded[16:].reshape((60000, 28, 28, 1)).astype(np.float32)
+
+        fd = open(os.path.join(path, 'train-labels-idx1-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        y = loaded[8:].reshape(60000).astype(np.int32)
+
+        x_train = x[:55000] / 255.
+        y_train = y[:55000]
+        y_train = (np.arange(args.n_cls) == y_train[:, None]).astype(np.float32)
+
+        x_valid = x[55000:, ] / 255.
+        y_valid = y[55000:]
+        y_valid = (np.arange(args.n_cls) == y_valid[:, None]).astype(np.float32)
+        return x_train, y_train, x_valid, y_valid
+    elif mode == 'test':
+        fd = open(os.path.join(path, 't10k-images-idx3-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        x_test = loaded[16:].reshape((10000, 28, 28, 1)).astype(np.float)
+
+        fd = open(os.path.join(path, 't10k-labels-idx1-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        y_test = loaded[8:].reshape(10000).astype(np.int32)
+        y_test = (np.arange(args.n_cls) == y_test[:, None]).astype(np.float32)
+        return x_test / 255., y_test
 
 
 def load_data(dataset, mode='train'):
@@ -161,11 +189,17 @@ def save_to():
 
 def load_and_save_to(epoch, num_train_batch):
 
-    train_path = args.results + args.dataset + 'train.csv'
-    val_path = args.results + args.dataset + 'validation.csv'
+    train_path = args.results + args.dataset + '/' + 'train.csv'
+    val_path = args.results + args.dataset + '/' + 'validation.csv'
+    # finding the minimum validation loss so far
+    f_ = open(val_path, 'r')
+    lines = f_.readlines()
+    a = np.genfromtxt(lines[-1:], delimiter=',')
+    min_loss = np.min(a[1:, 2])
+    # loading the .csv file to continue recording the values
     f_train = open(train_path, 'a')
     f_val = open(val_path, 'a')
-    return f_train, f_val
+    return f_train, f_val, min_loss
 
 
 def evaluate(sess, model, x, y):
@@ -180,3 +214,34 @@ def evaluate(sess, model, x, y):
         acc_all = np.append(acc_all, acc_batch)
         loss_all = np.append(loss_all, loss_batch)
     return np.mean(acc_all), np.mean(loss_all)
+
+
+def reconstruct_plot(x, y, x_reconst, y_pred, n_samples):
+    fashion_mnist_labels = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+                            'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+    sample_images = x.reshape(-1, args.img_w, args.img_h)
+    reconst = x_reconst.reshape([-1, args.img_w, args.img_h])
+
+    fig = plt.figure(figsize=(n_samples * 2, 3))
+    for index in range(n_samples):
+        plt.subplot(1, n_samples, index + 1)
+        plt.imshow(sample_images[index], cmap="binary")
+        if args.dataset == 'mnist':
+            plt.title("Label:" + str(np.argmax(y[index])))
+        elif args.dataset == 'fashion-mnist':
+            plt.title("Label:" + fashion_mnist_labels[np.argmax(y[index])])
+        plt.axis("off")
+    fig.savefig(args.results + args.dataset + '/' + 'input_images')
+    plt.show()
+
+    fig = plt.figure(figsize=(n_samples * 2, 3))
+    for index in range(n_samples):
+        plt.subplot(1, n_samples, index + 1)
+        plt.imshow(reconst[index], cmap="binary")
+        if args.dataset == 'mnist':
+            plt.title("Predicted:" + str(y_pred[index]))
+        elif args.dataset == 'fashion-mnist':
+            plt.title("Pred:" + fashion_mnist_labels[y_pred[index]])
+        plt.axis("off")
+    fig.savefig(args.results + args.dataset + '/' + 'reconstructed_images')
+    plt.show()

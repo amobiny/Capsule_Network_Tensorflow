@@ -35,13 +35,13 @@ class CapsNet:
             # [batch_size, 1152, 1, 8, 1]
             b_IJ = tf.zeros([args.batch_size, caps1_n_caps, caps2_n_caps, 1, 1], dtype=np.float32, name="b_ij")
             # [batch_size, 1152, 10, 1, 1]
-            caps2_output = routing(caps2_input, b_IJ, caps2_n_dims)
+            self.caps2_output = routing(caps2_input, b_IJ, caps2_n_dims)
             # [batch_size, 10, 16, 1]
 
         # Decoder
         with tf.variable_scope('Masking'):
             epsilon = 1e-9
-            self.v_length = tf.sqrt(tf.reduce_sum(tf.square(caps2_output), axis=2, keep_dims=True) + epsilon)
+            self.v_length = tf.sqrt(tf.reduce_sum(tf.square(self.caps2_output), axis=2, keep_dims=True) + epsilon)
             # [batch_size, 10, 1, 1]
 
             y_prob_argmax = tf.to_int32(tf.argmax(self.v_length, axis=1))
@@ -57,7 +57,7 @@ class CapsNet:
                                       name="reconstruction_targets")
             # [batch_size, 10]
 
-            caps2_output_masked = tf.multiply(tf.squeeze(caps2_output), tf.expand_dims(reconst_targets, -1))
+            caps2_output_masked = tf.multiply(tf.squeeze(self.caps2_output), tf.expand_dims(reconst_targets, -1))
             # [batch_size, 10, 16]
 
             decoder_input = tf.reshape(caps2_output_masked, [args.batch_size, -1])
