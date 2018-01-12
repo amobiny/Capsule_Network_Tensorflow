@@ -1,8 +1,7 @@
 import h5py
 import os
-from config import args
+from config import *
 import tensorflow as tf
-from network_params import *
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 
@@ -135,9 +134,11 @@ def routing(inputs, b_ij, out_caps_dim):
 def save_to():
     if not os.path.exists(args.results):
         os.mkdir(args.results)
+    if not os.path.exists(args.results + args.dataset):
+        os.mkdir(args.results + args.dataset)
     if args.mode == 'train':
-        train_path = args.results + 'train.csv'
-        val_path = args.results + 'validation.csv'
+        train_path = args.results + args.dataset + '/' + 'train.csv'
+        val_path = args.results + args.dataset + '/' + 'validation.csv'
 
         if os.path.exists(train_path):
             os.remove(train_path)
@@ -150,7 +151,7 @@ def save_to():
         f_val.write('epoch,accuracy,loss\n')
         return f_train, f_val
     else:
-        test_path = args.results + '/test.csv'
+        test_path = args.results + args.dataset + '/test.csv'
         if os.path.exists(test_path):
             os.remove(test_path)
         f_test = open(test_path, 'w')
@@ -159,10 +160,9 @@ def save_to():
 
 
 def load_and_save_to(epoch, num_train_batch):
-    last_saved_step = (epoch * num_train_batch) - ((epoch * num_train_batch) % args.tr_disp_sum)
 
-    train_path = args.results + 'train.csv'
-    val_path = args.results + 'validation.csv'
+    train_path = args.results + args.dataset + 'train.csv'
+    val_path = args.results + args.dataset + 'validation.csv'
     f_train = open(train_path, 'a')
     f_val = open(val_path, 'a')
     return f_train, f_val

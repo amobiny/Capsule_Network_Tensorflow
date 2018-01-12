@@ -2,5 +2,9 @@
 *.xml
 *.iml
 *.idea/
+__pycache__/
+*.tfmodel
+
+
 
 

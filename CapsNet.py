@@ -1,6 +1,5 @@
 import tensorflow as tf
-from config import args
-from network_params import *
+from config import *
 from utils import routing, squash
 import numpy as np
 

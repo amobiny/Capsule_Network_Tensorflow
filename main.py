@@ -11,11 +11,13 @@ def train(model):
     num_train_batch = int(y_train.shape[0] / args.batch_size)
     if not os.path.exists(args.checkpoint_path):
         os.makedirs(args.checkpoint_path)
+    if not os.path.exists(args.checkpoint_path + args.dataset):
+        os.makedirs(args.checkpoint_path + args.dataset)
 
     with tf.Session() as sess:
         if args.restore_training:
             saver = tf.train.Saver()
-            ckpt = tf.train.get_checkpoint_state(args.checkpoint_path)
+            ckpt = tf.train.get_checkpoint_state(args.checkpoint_path + args.dataset)
             saver.restore(sess, ckpt.model_checkpoint_path)
             start_epoch = int(str(ckpt.model_checkpoint_path).split('-')[-1])
             fd_train, fd_val = load_and_save_to(start_epoch, num_train_batch)
@@ -27,7 +29,7 @@ def train(model):
             best_loss_val = np.infty
 
         acc_batch_all = loss_batch_all = np.array([])
-        train_writer = tf.summary.FileWriter(args.log_dir + '/train/', sess.graph)
+        train_writer = tf.summary.FileWriter(args.log_dir + args.dataset, sess.graph)
         for epoch in range(start_epoch, args.epoch):
             print('_____________________________________________________________________________')
             print('Training Epoch] #{}'.format(epoch + 1))
@@ -73,7 +75,7 @@ def train(model):
 
             # And save the model if it improved:
             if loss_val < best_loss_val:
-                saver.save(sess, args.checkpoint_path + '/model.tfmodel', global_step=epoch + 1)
+                saver.save(sess, args.checkpoint_path + args.dataset + '/model.tfmodel', global_step=epoch + 1)
                 best_loss_val = loss_val
         fd_train.close()
         fd_val.close()
@@ -83,7 +85,7 @@ def test(model):
     x_test, y_test = load_data(dataset='mnist', mode='test')
     fd_test = save_to()
     saver = tf.train.Saver()
-    ckpt = tf.train.get_checkpoint_state(args.checkpoint_path)
+    ckpt = tf.train.get_checkpoint_state(args.checkpoint_path + args.dataset)
     with tf.Session() as sess:
         saver.restore(sess, ckpt.model_checkpoint_path)
         acc_test, loss_test = evaluate(sess, model, x_test, y_test)

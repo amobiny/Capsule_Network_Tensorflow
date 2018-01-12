@@ -1,7 +1,10 @@
-sand.py
 *.gz
 *.xml
 *.iml
 *.idea/
+__pycache__/
+*.tfmodel
+
+
 
 
