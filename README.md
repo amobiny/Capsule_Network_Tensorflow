@@ -3,12 +3,18 @@
 Capsule Network implementation in Tensorflow based on Geoffrey Hinton's paper [Dynamic Routing Between Capsules](https://arxiv.org/abs/1710.09829).
 
 ![CapsNet](imgs/img1.png)
-*Capsule Network architecture from Hinton's paper*
+*Fig1. Capsule Network architecture from Hinton's paper*
 
-**- Contents:**
-1. [Introduction] (https://github.com/amobiny/Capsule_Network_Tensorflow#1-introduction)
-2. [How to run the code] (https://github.com/amobiny/Capsule_Network_Tensorflow#2-how-to-run-the-code)
-3. [Results] (https://github.com/amobiny/Capsule_Network_Tensorflow#3results)
+**- Table of Contents:**
+1. [Introduction](https://github.com/amobiny/Capsule_Network_Tensorflow#1-introduction)
+[	1.1. Learning about CapsNet](https://github.com/amobiny/Capsule_Network_Tensorflow#11-learning-about-capsnet)
+[	1.2. Code Features](https://github.com/amobiny/Capsule_Network_Tensorflow#12-code-features) 
+[	1.3. Requirements](https://github.com/amobiny/Capsule_Network_Tensorflow#13-requirements)
+2. [How to run the code](https://github.com/amobiny/Capsule_Network_Tensorflow#2-how-to-run-the-code)
+[	2.1. Train](https://github.com/amobiny/Capsule_Network_Tensorflow#21-train)
+[	2.2. Test](https://github.com/amobiny/Capsule_Network_Tensorflow#22-test)
+[	2.3. Visualize](https://github.com/amobiny/Capsule_Network_Tensorflow#23-visualize)
+3. [Results](https://github.com/amobiny/Capsule_Network_Tensorflow#3results)
 
 
 ## 1. Introduction
@@ -59,11 +65,11 @@ Training the model displays and saves the training results (accuracy and loss) i
 - Loading the model and continue training: ```python main.py --restore_training=True```
 - For training on Fashion-MNIST data: ```python main.py --dataset=fashion-mnist```
 - For training with a different batch size: ```python main.py --batch_size=100```
-### 2.1 Test:
+### 2.2 Test:
 - For training on MNIST data: ```python main.py --mode=test```
 - For training on Fashion-MNIST data: ```python main.py --dataset=fashion-mnist --mode=test```
 
-### 3.1. Visualize
+### 2.3. Visualize
 This mode is for running the trained model on a number of samples, get the predictions, and visualize (on 5 samples by default) the original and reconstructed images (also saved automatically in the __/results/__ folder).
 
 - For MNIST data on 10 images: ```python main.py --mode=visualize --n_samples=10```
@@ -77,16 +83,19 @@ Training, validation and test results get saved separately for each dataset in .
 To view the results and summaries in **Tensorboard**,  open the terminal in the main folder and type: ```tensorboard --logdir=results/mnist``` for MNIST or ```tensorboard --logdir=results/fashion-mnist```, then open the generated link in your browser. It plots the average accuracy and total loss over training batches (over 100 batches by default), as well as the marginal and reconstruction loss separately. They are accessible through *scalars* tab on the top menu.
 
 ![Tensorboard_curves](imgs/img2.png)
-*Accuracy and loss curves in Tensorboard*
+
+*Fig2. Accuracy and loss curves in Tensorboard*
 
 You can also monitor the sample images and their reconstructed counterparts in realtime from the *images* tab.
 
 ![Tensorboard_imgs](imgs/img3.png)
-*Sample original and recunstructed images in Tensorboard*
+
+*Fig3. Sample original and recunstructed images in Tensorboard*
 
 After training, you can also run the code in **visualize** mode and get some of the results on sampled images saved in .png format. Example results for both MNIST and Fashion-MNIST data are as follows:
 
 ![Tensorboard_curves](imgs/img4.png)
-*Original and reconstructed images for MNIST and Fashion-MNIST data generated in **visualize** mode*
+
+*Fig4. Original and reconstructed images for MNIST and Fashion-MNIST data generated in **visualize** mode*
 
 
