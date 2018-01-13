@@ -12,7 +12,7 @@ parser.add_argument('--lambda_val', default=0.5, help='Down-weighting parameter 
 parser.add_argument('--alpha', default=.392, help='Regularization coefficient to scale down the reconstruction loss')
 
 # For training
-parser.add_argument('--mode', default='train', help='train, test or visualize')
+parser.add_argument('--mode', default='test', help='train, test or visualize')
 parser.add_argument('--batch_size', default=128, help='Batch size')
 parser.add_argument('--epoch', default=50, help='Total number of training epochs')
 parser.add_argument('--iter_routing', default=3, help='Number of routing iterations')

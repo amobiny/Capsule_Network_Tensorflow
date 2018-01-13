@@ -8,7 +8,6 @@ import os
 
 def train(model):
     x_train, y_train, x_valid, y_valid = load_data(dataset=args.dataset, mode='train')
-    print('Data set Loaded')
     num_train_batch = int(y_train.shape[0] / args.batch_size)
     if not os.path.exists(args.checkpoint_path + args.dataset):
         os.makedirs(args.checkpoint_path + args.dataset)
@@ -18,17 +17,15 @@ def train(model):
             saver = tf.train.Saver()
             ckpt = tf.train.get_checkpoint_state(args.checkpoint_path + args.dataset)
             saver.restore(sess, ckpt.model_checkpoint_path)
-            print('Model Restored')
             start_epoch = int(str(ckpt.model_checkpoint_path).split('-')[-1])
             fd_train, fd_val, best_loss_val = load_and_save_to(start_epoch, num_train_batch)
         else:
             saver = tf.train.Saver(tf.global_variables())
             tf.global_variables_initializer().run()
-            print('All variables initialized')
             fd_train, fd_val = save_to()
             start_epoch = 0
             best_loss_val = np.infty
-        print('Start Training')
+
         acc_batch_all = loss_batch_all = np.array([])
         train_writer = tf.summary.FileWriter(args.log_dir + args.dataset, sess.graph)
         for epoch in range(start_epoch, args.epoch):
@@ -83,8 +80,7 @@ def train(model):
 
 
 def test(model):
-    x_test, y_test = load_data(dataset=args.dataset, mode='test')
-    print('Data set Loaded')
+    x_test, y_test = load_data(dataset='mnist', mode='test')
     fd_test = save_to()
     saver = tf.train.Saver()
     ckpt = tf.train.get_checkpoint_state(args.checkpoint_path + args.dataset)

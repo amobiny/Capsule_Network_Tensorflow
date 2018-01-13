@@ -1,10 +1,11 @@
-import h5py
 import os
 from config import *
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 import matplotlib.pyplot as plt
+
+from download import download_fashion_mnist
 
 
 def load_mnist(mode='train'):
@@ -30,6 +31,7 @@ def load_mnist(mode='train'):
 
 def load_fashion_mnist(mode='train'):
     path = os.path.join('data', 'fashion-mnist')
+    download_fashion_mnist(save_to=path)
     if mode == 'train':
         fd = open(os.path.join(path, 'train-images-idx3-ubyte'))
         loaded = np.fromfile(file=fd, dtype=np.uint8)
