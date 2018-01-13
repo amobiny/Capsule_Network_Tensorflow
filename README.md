@@ -7,13 +7,21 @@ Capsule Network implementation in Tensorflow based on Geoffrey Hinton's paper [D
 
 **- Table of Contents:**
 1. [Introduction](https://github.com/amobiny/Capsule_Network_Tensorflow#1-introduction)
+
 [	1.1. Learning about CapsNet](https://github.com/amobiny/Capsule_Network_Tensorflow#11-learning-about-capsnet)
+
 [	1.2. Code Features](https://github.com/amobiny/Capsule_Network_Tensorflow#12-code-features) 
+
 [	1.3. Requirements](https://github.com/amobiny/Capsule_Network_Tensorflow#13-requirements)
+
 2. [How to run the code](https://github.com/amobiny/Capsule_Network_Tensorflow#2-how-to-run-the-code)
+
 [	2.1. Train](https://github.com/amobiny/Capsule_Network_Tensorflow#21-train)
+
 [	2.2. Test](https://github.com/amobiny/Capsule_Network_Tensorflow#22-test)
+
 [	2.3. Visualize](https://github.com/amobiny/Capsule_Network_Tensorflow#23-visualize)
+
 3. [Results](https://github.com/amobiny/Capsule_Network_Tensorflow#3results)
 
 
