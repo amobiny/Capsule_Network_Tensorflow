@@ -6,9 +6,9 @@ Capsule Network implementation in Tensorflow based on Geoffrey Hinton's paper [D
 *Capsule Network architecture from Hinton's paper*
 
 **- Contents:**
-1. [Introduction] (https://github.com/naturomics/CapsNet-Tensorflow##1. Introduction)
-2. [How to run the code] (https://github.com/naturomics/CapsNet-Tensorflow##2. How to run the code)
-3. [Results] (https://github.com/naturomics/CapsNet-Tensorflow##3. results)
+1. [Introduction] (https://github.com/amobiny/Capsule_Network_Tensorflow#1-introduction)
+2. [How to run the code] (https://github.com/amobiny/Capsule_Network_Tensorflow#2-how-to-run-the-code)
+3. [Results] (https://github.com/amobiny/Capsule_Network_Tensorflow#3results)
 
 
 ## 1. Introduction
@@ -34,7 +34,7 @@ The main changes include:
 
 All in all, the main features of the code are:
 > 1. The current version supports [MNIST](http://yann.lecun.com/exdb/mnist/) and [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) datasets. 
->  2. Run the code in **Train**, **Test**, and **Visualize** modes (explained at the bottom). 
+> 2. Run the code in **Train**, **Test**, and **Visualize** modes (explained at the bottom). 
 > 3. The best validation and test accuracy for MNIST , and Fashion-MNIST  are as follows (see details in the [Results] (https://github.com/naturomics/CapsNet-Tensorflow##3.Results)  section):
 
  - | Validation accuracy | Validation Loss | Test Accuracy | Test Loss |
@@ -70,7 +70,7 @@ This mode is for running the trained model on a number of samples, get the predi
 - For Fashion-MNIST data: ```python main.py --mode=visualize ```
 
 
-## 3.Results
+## 3. Results
 
 Training, validation and test results get saved separately for each dataset in .csv formats. By default, they get saved in the __/results/__ directory.
 
