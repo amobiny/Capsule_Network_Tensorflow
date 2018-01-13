@@ -1,28 +1,21 @@
 
+
 # Capsule Network (Tensorflow)
 Capsule Network implementation in Tensorflow based on Geoffrey Hinton's paper [Dynamic Routing Between Capsules](https://arxiv.org/abs/1710.09829).
 
 ![CapsNet](imgs/img1.png)
 *Fig1. Capsule Network architecture from Hinton's paper*
 
-**- Table of Contents:**
-1. [Introduction](https://github.com/amobiny/Capsule_Network_Tensorflow#1-introduction)
-
-[	1.1. Learning about CapsNet](https://github.com/amobiny/Capsule_Network_Tensorflow#11-learning-about-capsnet)
-
-[	1.2. Code Features](https://github.com/amobiny/Capsule_Network_Tensorflow#12-code-features) 
-
-[	1.3. Requirements](https://github.com/amobiny/Capsule_Network_Tensorflow#13-requirements)
-
-2. [How to run the code](https://github.com/amobiny/Capsule_Network_Tensorflow#2-how-to-run-the-code)
-
-[	2.1. Train](https://github.com/amobiny/Capsule_Network_Tensorflow#21-train)
-
-[	2.2. Test](https://github.com/amobiny/Capsule_Network_Tensorflow#22-test)
-
-[	2.3. Visualize](https://github.com/amobiny/Capsule_Network_Tensorflow#23-visualize)
-
-3. [Results](https://github.com/amobiny/Capsule_Network_Tensorflow#3results)
+## Contents:
+* [1. Introduction](https://github.com/amobiny/Capsule_Network_Tensorflow#1-introduction)
+  * [1.1. Learning about CapsNet](https://github.com/amobiny/Capsule_Network_Tensorflow#11-learning-about-capsnet)
+  * [1.2. Code Features](https://github.com/amobiny/Capsule_Network_Tensorflow#12-code-features) 
+  * [1.3. Dependencies](https://github.com/amobiny/Capsule_Network_Tensorflow#13-dependencies)
+* [2. How to run the code](https://github.com/amobiny/Capsule_Network_Tensorflow#2-how-to-run-the-code)
+  * [2.1. Train](https://github.com/amobiny/Capsule_Network_Tensorflow#21-train)
+  * [2.2. Test](https://github.com/amobiny/Capsule_Network_Tensorflow#22-test)
+  * [2.3. Visualize](https://github.com/amobiny/Capsule_Network_Tensorflow#23-visualize)
+ * [3. Results](https://github.com/amobiny/Capsule_Network_Tensorflow#3results)
 
 
 ## 1. Introduction
@@ -34,29 +27,29 @@ I started learning about CapsNet by reading the paper and watch Hinton's talks (
 
 ### 1.2. Code Features:
 
-This code is partly inspired from Liao's implementation [CapsNet-Tensorflow](http://yann.lecun.com/exdb/mnist/) with changes applied to add some features as well as making the code more efficient.
+This code is partly inspired from Liao's implementation [CapsNet-Tensorflow](https://github.com/naturomics/CapsNet-Tensorflow) with changes applied to add some features as well as making the code more efficient.
 
 The main changes include:
-> 1. The Capslayer class is removed as I found it to be unnecessary at this level. This makes the whole code shorter and structured.
-> 2. __Hard-coded values__ (such as the number of capsules, hidden units, etc.) are all extracted and are accessible through ``config.py`` file. Therefore, making changes in the network structure is much more convenient.
-> 3. __Summary__ writers are modified. Liao's code writes the loss and accuracy only for the final batch after a certain desired steps. Here, it's modified to write the average loss and accuracy values which is what we should exactly look at.
-> 4. __Masking__ procedure is modified. This code is much easier to understand how the masking changes between train and test. 
-> 5. __Visualize__ mode is added which helps to plot the reconstructed sample images and visualize the network prediction performance. 
-> 6. __Saving__  and __Loading__ of the trained models are improved.
-> 7. __Data sets__ (MNIST and fashion-MNIST) get downloaded, automatically. 
-> 8. This code __Displays__ the real time results in the terminal (or command line).
+* The Capslayer class is removed as I found it to be unnecessary at this level. This makes the whole code shorter and structured.
+* __Hard-coded values__ (such as the number of capsules, hidden units, etc.) are all extracted and are accessible through ``config.py`` file. Therefore, making changes in the network structure is much more convenient.
+* __Summary__ writers are modified. Liao's code writes the loss and accuracy only for the final batch after a certain desired steps. Here, it's modified to write the average loss and accuracy values which is what we should exactly look at.
+* __Masking__ procedure is modified. This code is much easier to understand how the masking changes between train and test. 
+* __Visualize__ mode is added which helps to plot the reconstructed sample images and visualize the network prediction performance. 
+* __Saving__  and __Loading__ of the trained models are improved.
+* __Data sets__ (MNIST and fashion-MNIST) get downloaded, automatically. 
+* This code __Displays__ the real time results in the terminal (or command line).
 
 All in all, the main features of the code are:
 > 1. The current version supports [MNIST](http://yann.lecun.com/exdb/mnist/) and [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) datasets. 
 > 2. Run the code in **Train**, **Test**, and **Visualize** modes (explained at the bottom). 
-> 3. The best validation and test accuracy for MNIST , and Fashion-MNIST  are as follows (see details in the [Results] (https://github.com/naturomics/CapsNet-Tensorflow##3.Results)  section):
+> 3. The best validation and test accuracy for MNIST , and Fashion-MNIST  are as follows (see details in the [Results](https://github.com/amobiny/Capsule_Network_Tensorflow#3-results)  section):
 
- - | Validation accuracy | Validation Loss | Test Accuracy | Test Loss |
+ Data set | Validation accuracy | Validation Loss | Test Accuracy | Test Loss |
 :-----|:----:|:----:|:----|:----|
 MNIST | % 99.54 | 0.0095 | % 99.49 | 0.0095 |
 Fahion-MNIST | % 91.09 | 0.076 | % 90.71 | 0.079 |
 
-### 1.3. Requirements
+### 1.3. Dependencies
 - Python (2.7 preferably; also works fine with python 3)
 - NumPy
 - [Tensorflow](https://github.com/tensorflow/tensorflow)>=1.3

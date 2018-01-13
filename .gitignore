@@ -3,6 +3,10 @@
 *.iml
 *.idea/
 __pycache__/
+*.pyc
+*.md~
+*.py~
+.idea
 
 
 

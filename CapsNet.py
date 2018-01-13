@@ -95,10 +95,10 @@ class CapsNet:
         # 2. The reconstruction loss
         orgin = tf.reshape(self.X, shape=(args.batch_size, -1))
         squared = tf.square(self.decoder_output - orgin)
-        self.reconstruction_err = tf.reduce_mean(squared)
+        self.reconstruction_err = tf.reduce_mean(squared, name="reconstruction_loss")
 
         # 3. Total loss
-        self.total_loss = self.margin_loss + args.alpha * self.reconstruction_err
+        self.total_loss = tf.add(self.margin_loss, args.alpha * self.reconstruction_err, name="total_loss")
 
     def accuracy_calc(self):
         correct_prediction = tf.equal(tf.to_int32(tf.argmax(self.Y, axis=1)), self.y_pred)

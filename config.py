@@ -9,7 +9,7 @@ parser.add_argument('--m_minus', default=0.1, help='m- parameter')
 parser.add_argument('--lambda_val', default=0.5, help='Down-weighting parameter for the absent class')
 
 # For reconstruction loss
-parser.add_argument('--alpha', default=.392, help='Regularization coefficient to scale down the reconstruction loss')
+parser.add_argument('--alpha', default=.0005, help='Regularization coefficient to scale down the reconstruction loss')
 
 # For training
 parser.add_argument('--mode', default='train', help='train, test or visualize')
