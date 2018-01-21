@@ -79,89 +79,24 @@ def randomize(x, y):
 
 
 def get_next_batch(x, y, start, end):
+    """
+    Fetch the next batch of input images and labels
+    :param x: all input images
+    :param y: all labels
+    :param start: first image number
+    :param end: last image number
+    :return: batch of images and their corresponding labels
+    """
     x_batch = x[start:end]
     y_batch = y[start:end]
     return x_batch, y_batch
 
 
-def squash(s, epsilon=1e-7, name=None):
-    """
-    Squashing function corresponding to Eq. 1
-    :param s: A tensor with shape [batch_size, 1, num_caps, vec_len, 1] or [batch_size, num_caps, vec_len, 1].
-    :param epsilon: To compute norm safely
-    :param name:
-    :return: A tensor with the same shape as vector but squashed in 'vec_len' dimension.
-    """
-    with tf.name_scope(name, default_name="squash"):
-        squared_norm = tf.reduce_sum(tf.square(s), axis=-1, keep_dims=True)
-        safe_norm = tf.sqrt(squared_norm + epsilon)
-        squash_factor = squared_norm / (1. + squared_norm)
-        unit_vector = s / safe_norm
-        return squash_factor * unit_vector
-
-
-def routing(inputs, b_ij, out_caps_dim):
-    """
-    The routing algorithm
-    :param inputs: A tensor with [batch_size, num_caps_in=1152, 1, in_caps_dim=8, 1] shape.
-                  num_caps_in: the number of capsule in layer l (i.e. PrimaryCaps).
-                  in_caps_dim: dimension of the output vectors of layer l (i.e. PrimaryCaps)
-    :param b_ij: [batch_size, num_caps_in=1152, num_caps_out=10, 1, 1]
-                num_caps_out: the number of capsule in layer l+1 (i.e. DigitCaps).
-    :param out_caps_dim: dimension of the output vectors of layer l+1 (i.e. DigitCaps)
-
-    :return: A Tensor of shape [batch_size, num_caps_out=10, out_caps_dim=16, 1]
-            representing the vector output `v_j` in layer l+1.
-    """
-    # W: [num_caps_in, num_caps_out, len_u_i, len_v_j]
-    W = tf.get_variable('W', shape=(1, inputs.shape[1].value, b_ij.shape[2].value, inputs.shape[3].value, out_caps_dim),
-                        dtype=tf.float32, initializer=tf.random_normal_initializer(stddev=args.stddev))
-
-    inputs = tf.tile(inputs, [1, 1, b_ij.shape[2].value, 1, 1])
-    # input => [batch_size, 1152, 10, 8, 1]
-
-    W = tf.tile(W, [args.batch_size, 1, 1, 1, 1])
-    # W => [batch_size, 1152, 10, 8, 16]
-
-    u_hat = tf.matmul(W, inputs, transpose_a=True)
-    # [batch_size, 1152, 10, 16, 1]
-
-    # In forward, u_hat_stopped = u_hat; in backward, no gradient passed back from u_hat_stopped to u_hat
-    u_hat_stopped = tf.stop_gradient(u_hat, name='stop_gradient')
-
-    # For r iterations do
-    for r_iter in range(args.iter_routing):
-        with tf.variable_scope('iter_' + str(r_iter)):
-            c_ij = tf.nn.softmax(b_ij, dim=2)
-            # [batch_size, 1152, 10, 1, 1]
-
-            # At last iteration, use `u_hat` in order to receive gradients from the following graph
-            if r_iter == args.iter_routing - 1:
-                s_j = tf.multiply(c_ij, u_hat)
-                # [batch_size, 1152, 10, 16, 1]
-                # then sum in the second dim
-                s_j = tf.reduce_sum(s_j, axis=1, keep_dims=True)
-                # [batch_size, 1, 10, 16, 1]
-                v_j = squash(s_j)
-                # [batch_size, 1, 10, 16, 1]
-
-            elif r_iter < args.iter_routing - 1:  # Inner iterations, do not apply backpropagation
-                s_j = tf.multiply(c_ij, u_hat_stopped)
-                s_j = tf.reduce_sum(s_j, axis=1, keep_dims=True)
-                v_j = squash(s_j)
-                v_j_tiled = tf.tile(v_j, [1, inputs.shape[1].value, 1, 1, 1])
-                # [batch_size, 1152, 10, 16, 1]
-
-                # then matmul in the last two dim: [16, 1].T x [16, 1] => [1, 1]
-                u_produce_v = tf.matmul(u_hat_stopped, v_j_tiled, transpose_a=True)
-                # [batch_size, 1152, 10, 1, 1]
-
-                b_ij += u_produce_v
-    return tf.squeeze(v_j, axis=1)
-    # [batch_size, 10, 16, 1]
-
-
 def save_to():
+    """
+    Creating the handles for saving the results in a .csv file
+    :return:
+    """
     if not os.path.exists(args.results):
         os.mkdir(args.results)
     if not os.path.exists(args.results + args.dataset):
@@ -189,8 +124,11 @@ def save_to():
         return f_test
 
 
-def load_and_save_to(epoch, num_train_batch):
-
+def load_and_save_to(start_epoch, num_train_batch):
+    """
+    Loads the saved .csv files to continue training the model
+    :return: the handles for saving into files and the minimum validation loss so far
+    """
     train_path = args.results + args.dataset + '/' + 'train.csv'
     val_path = args.results + args.dataset + '/' + 'validation.csv'
     # finding the minimum validation loss so far
@@ -205,17 +143,18 @@ def load_and_save_to(epoch, num_train_batch):
 
 
 def evaluate(sess, model, x, y):
-    acc_all = loss_all = np.array([])
+    acc_all = loss_all = pred_all = np.array([])
     num_batch = y.shape[0] / args.batch_size
     for i in range(num_batch):
         start_val = i * args.batch_size
         end_val = start_val + args.batch_size
         x_b, y_b = get_next_batch(x, y, start_val, end_val)
-        acc_batch, loss_batch = sess.run([model.accuracy, model.total_loss],
-                                         feed_dict={model.X: x_b, model.Y: y_b})
+        acc_batch, loss_batch, pred_batch = sess.run([model.accuracy, model.total_loss, model.y_pred],
+                                                     feed_dict={model.X: x_b, model.Y: y_b})
+        pred_all = np.append(pred_all, pred_batch)
         acc_all = np.append(acc_all, acc_batch)
         loss_all = np.append(loss_all, loss_batch)
-    return np.mean(acc_all), np.mean(loss_all)
+    return np.mean(acc_all), np.mean(loss_all), pred_all
 
 
 def reconstruct_plot(x, y, x_reconst, y_pred, n_samples):
@@ -233,7 +172,7 @@ def reconstruct_plot(x, y, x_reconst, y_pred, n_samples):
         elif args.dataset == 'fashion-mnist':
             plt.title("Label:" + fashion_mnist_labels[np.argmax(y[index])])
         plt.axis("off")
-    fig.savefig(args.results + args.dataset + '/' + 'input_images')
+    fig.savefig(args.results + args.dataset + '/' + 'input_images.png')
     plt.show()
 
     fig = plt.figure(figsize=(n_samples * 2, 3))
@@ -245,5 +184,77 @@ def reconstruct_plot(x, y, x_reconst, y_pred, n_samples):
         elif args.dataset == 'fashion-mnist':
             plt.title("Pred:" + fashion_mnist_labels[y_pred[index]])
         plt.axis("off")
-    fig.savefig(args.results + args.dataset + '/' + 'reconstructed_images')
+    fig.savefig(args.results + args.dataset + '/' + 'reconstructed_images.png')
     plt.show()
+
+
+def plot_adv_samples(x_orig, x_adv, y_true, y_pred_adv, y_pred, max_iter, epsilon, n_samples_per_class=3):
+    idx = np.zeros((n_samples_per_class, args.n_cls)).astype(int)
+    count = np.zeros(args.n_cls).astype(int)
+    for i in range(y_pred_adv.shape[0]):
+        # To plot only images classified correctly before, but are mistakenly classified
+        # after the adversary attack
+        if y_true[i] != y_pred_adv[i] and y_true[i] == y_pred[i] and count[y_true[i]] < n_samples_per_class:
+            idx[count[y_true[i]], y_true[i]] = i
+            count[y_true[i]] += 1
+        else:
+            continue
+    idx = idx.reshape(-1, )
+    fig = plt.figure(figsize=(10, n_samples_per_class * 1.2))
+    for index in range(idx.size):
+        plt.subplot(n_samples_per_class, args.n_cls, index + 1)
+        plt.imshow(x_adv[idx[index]].reshape(args.img_w, args.img_h), cmap="gray")
+        plt.title(str(y_pred_adv[idx[index]]))
+        plt.xticks([])
+        plt.yticks([])
+    fig.savefig(args.results + args.dataset + '/' +
+                'adv_attack_Xadv_iter_{0}_eps_{1}.png'.format(str(max_iter), str(epsilon)))
+    plt.close(fig)
+    fig = plt.figure(figsize=(10, n_samples_per_class * 1.2))
+    for index in range(idx.size):
+        plt.subplot(n_samples_per_class, args.n_cls, index + 1)
+        plt.imshow(x_orig[idx[index]].reshape(args.img_w, args.img_h), cmap="gray")
+        plt.xticks([])
+        plt.yticks([])
+    fig.savefig(args.results + args.dataset + '/' +
+                'adv_attack_Xorig_iter_{0}_eps_{1}.png'.format(str(max_iter), str(epsilon)))
+    plt.close(fig)
+    fig = plt.figure(figsize=(10, n_samples_per_class * 1.2))
+    for index in range(idx.size):
+        plt.subplot(n_samples_per_class, args.n_cls, index + 1)
+        plt.imshow((x_adv[idx[index]] - x_orig[idx[index]]).reshape(args.img_w, args.img_h), cmap="gray")
+        plt.title(str(int(y_pred[idx[index]])) + '->' + str(y_pred_adv[idx[index]]))
+        plt.xticks([])
+        plt.yticks([])
+    fig.savefig(args.results + args.dataset + '/' +
+                'adv_attack_difference_iter_{0}_eps_{1}.png'.format(str(max_iter), str(epsilon)))
+    plt.close(fig)
+
+
+def plot_adv_curves(acc, loss, max_iter, epsilon):
+    fig, axs = plt.subplots(nrows=1, ncols=2, sharex=True)
+    width, height = 10, 4
+    fig.set_size_inches(width, height)
+
+    ax = axs[0]
+    ax.plot(epsilon, acc, '-o', color='k')
+    ax.set_xlim([epsilon[0], epsilon[-1]])
+    ax.set_ylim([0, 1])
+    ax.set_xlabel('Epsilon')
+    ax.set_ylabel('Accuracy')
+    ax.grid(color='lightgray', linestyle='-', linewidth=0.3)
+
+    ax = axs[1]
+    ax.plot(epsilon, loss, '-o', color='k')
+    ax.set_xlim([epsilon[0], epsilon[-1]])
+    ax.set_xlabel('Epsilon')
+    ax.set_ylabel('Loss')
+    ax.grid(color='lightgray', linestyle='-', linewidth=0.3)
+
+    plt.rc('xtick', labelsize=15)
+    plt.rc('ytick', labelsize=15)
+    plt.rc('axes', labelsize=15)
+    fig.subplots_adjust(left=0.1, bottom=0.15, right=0.95, top=0.95, wspace=0.3, hspace=None)
+    plt.show()
+    fig.savefig(args.results + args.dataset + '/' +
+                'adv_attack_curves_iter_{0}.png'.format(str(max_iter)))

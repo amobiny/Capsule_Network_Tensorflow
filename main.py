@@ -2,7 +2,8 @@ from CapsNet import CapsNet
 import tensorflow as tf
 import numpy as np
 from config import args
-from utils import load_data, randomize, get_next_batch, save_to, load_and_save_to, evaluate, reconstruct_plot
+from utils import load_data, randomize, get_next_batch, save_to, load_and_save_to, evaluate, reconstruct_plot, \
+    plot_adv_samples, plot_adv_curves
 import os
 
 
@@ -67,7 +68,7 @@ def train(model):
                     loss_batch_all = np.append(loss_batch_all, loss_batch)
 
             # Run validation after each epoch
-            acc_val, loss_val = evaluate(sess, model, x_valid, y_valid)
+            acc_val, loss_val, _ = evaluate(sess, model, x_valid, y_valid)
             fd_val.write(str(epoch + 1) + ',' + str(acc_val) + ',' + str(loss_val) + '\n')
             fd_val.flush()
             print('-----------------------------------------------------------------------------')
@@ -90,7 +91,8 @@ def test(model):
     ckpt = tf.train.get_checkpoint_state(args.checkpoint_path + args.dataset)
     with tf.Session() as sess:
         saver.restore(sess, ckpt.model_checkpoint_path)
-        acc_test, loss_test = evaluate(sess, model, x_test, y_test)
+        print('Model Restored')
+        acc_test, loss_test, _ = evaluate(sess, model, x_test, y_test)
         fd_test.write(str(acc_test) + ',' + str(loss_test) + '\n')
         fd_test.flush()
         print('-----------------------------------------------------------------------------')
@@ -107,8 +109,46 @@ def visualize(model, n_samples=5):
         feed_dict_samples = {model.X: sample_images, model.Y: sample_labels}
         decoder_out, y_pred = sess.run([model.decoder_output, model.y_pred],
                                        feed_dict=feed_dict_samples)
-
     reconstruct_plot(sample_images, sample_labels, decoder_out, y_pred, n_samples)
+
+
+def adv_attack(model, max_epsilon, max_iter):
+    x_test, y_test = load_data(dataset=args.dataset, mode='test')
+    print('Data set Loaded')
+    all_acc = all_loss = np.array([])
+    epsilon = tf.placeholder(shape=[], dtype=tf.float32, name="epsilon")
+    saver = tf.train.Saver()
+    ckpt = tf.train.get_checkpoint_state(args.checkpoint_path + args.dataset)
+
+    # FGSM and Basic iteration (iterative version of FGSM; i.e. max_iter>1)
+    dy_dx, = tf.gradients(model.total_loss, model.X)
+    x_adv = tf.stop_gradient(model.X + epsilon * tf.sign(dy_dx))
+    X_adv = tf.clip_by_value(x_adv, 0., 1.)
+
+    with tf.Session() as sess:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        print('Model Restored')
+        num_batch = y_test.shape[0] / args.batch_size
+        for eps in max_epsilon:     # loop over epsilon values
+            iter_eps = eps
+            x_adv_all = np.zeros((0, args.img_w, args.img_h, args.n_ch))
+            eps /= max_iter
+            for i in range(num_batch):      # loop over input batches
+                start_val = i * args.batch_size
+                end_val = start_val + args.batch_size
+                x_adv_batch, y_batch = get_next_batch(x_test, y_test, start_val, end_val)
+                for _ in range(max_iter):   # iterations
+                    x_adv_batch = sess.run(X_adv, feed_dict={model.X: x_adv_batch, model.Y: y_batch, epsilon: eps})
+                x_adv_all = np.concatenate((x_adv_all, x_adv_batch))
+            acc_adv, loss_adv, y_pred_adv = evaluate(sess, model, x_adv_all, y_test)
+            _, _, y_pred = evaluate(sess, model, x_test, y_test)
+            print("Epsilon={0}, Test loss: {1:.4f}, Test accuracy: {2:.01%}".format(iter_eps, loss_adv, acc_adv))
+            plot_adv_samples(x_test, x_adv_all,
+                             np.argmax(y_test, axis=1), y_pred_adv.astype(int), y_pred,
+                             max_iter, iter_eps, n_samples_per_class=5)
+            all_acc = np.append(all_acc, acc_adv)
+            all_loss = np.append(all_loss, loss_adv)
+        plot_adv_curves(all_acc, all_loss, max_iter, max_epsilon)
 
 
 def main(_):
@@ -119,6 +159,8 @@ def main(_):
         test(model)
     elif args.mode == 'visualize':
         visualize(model, n_samples=args.n_samples)
+    elif args.mode == 'adv_attack':
+        adv_attack(model, max_epsilon=args.max_eps, max_iter=args.max_iter)
 
 
 if __name__ == "__main__":

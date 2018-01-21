@@ -1,10 +1,7 @@
 
 
-# Capsule Network (Tensorflow)
+# Capsule Network (Tensorflow) + adversarial attack
 Capsule Network implementation in Tensorflow based on Geoffrey Hinton's paper [Dynamic Routing Between Capsules](https://arxiv.org/abs/1710.09829).
-
-![CapsNet](imgs/img1.png)
-*Fig1. Capsule Network architecture from Hinton's paper*
 
 ## Contents:
 * [1. Introduction](https://github.com/amobiny/Capsule_Network_Tensorflow#1-introduction)
@@ -15,7 +12,14 @@ Capsule Network implementation in Tensorflow based on Geoffrey Hinton's paper [D
   * [2.1. Train](https://github.com/amobiny/Capsule_Network_Tensorflow#21-train)
   * [2.2. Test](https://github.com/amobiny/Capsule_Network_Tensorflow#22-test)
   * [2.3. Visualize](https://github.com/amobiny/Capsule_Network_Tensorflow#23-visualize)
- * [3. Results](https://github.com/amobiny/Capsule_Network_Tensorflow#3results)
+  * [2.4. Adversarial attack](https://github.com/amobiny/Capsule_Network_Tensorflow#24-adversarial-attack)
+* [3. Results](https://github.com/amobiny/Capsule_Network_Tensorflow#3-results)
+  * [3.1. Classification](https://github.com/amobiny/Capsule_Network_Tensorflow#31-classification)
+  * [3.2. Reconstruction](https://github.com/amobiny/Capsule_Network_Tensorflow#32-reconstruction)
+  * [3.3. Adversary attack](https://github.com/amobiny/Capsule_Network_Tensorflow#33-adversary-attack)
+
+![CapsNet](imgs/img1.png)
+*Fig1. Capsule Network architecture from Hinton's paper*
 
 
 ## 1. Introduction
@@ -76,9 +80,16 @@ This mode is for running the trained model on a number of samples, get the predi
 - For MNIST data on 10 images: ```python main.py --mode=visualize --n_samples=10```
 - For Fashion-MNIST data: ```python main.py --mode=visualize ```
 
+### 2.4. Adversarial attack
+This mode is to check the vulnerability of the capsule network to adversarial examples; inputs that have been slightly changed by an attacker so as to trick a neural net classifier into making the wrong classification.
+Currently, only the untargeted BFGS method and it's iterative counterpart (commonly called Basic Iteration Method or BIM) are implemented. To run it on the trained model, use:
+
+- FGSM mode: ```python main.py --mode=adv_attack```
+- BIM mode: ```python main.py --mode=adv_attack --max_iter=3```
 
 ## 3. Results
 
+### 3.1. Classification
 Training, validation and test results get saved separately for each dataset in .csv formats. By default, they get saved in the __/results/__ directory.
 
 To view the results and summaries in **Tensorboard**,  open the terminal in the main folder and type: ```tensorboard --logdir=results/mnist``` for MNIST or ```tensorboard --logdir=results/fashion-mnist```, then open the generated link in your browser. It plots the average accuracy and total loss over training batches (over 100 batches by default), as well as the marginal and reconstruction loss separately. They are accessible through *scalars* tab on the top menu.
@@ -87,6 +98,7 @@ To view the results and summaries in **Tensorboard**,  open the terminal in the 
 
 *Fig2. Accuracy and loss curves in Tensorboard*
 
+### 3.2. Reconstruction
 You can also monitor the sample images and their reconstructed counterparts in realtime from the *images* tab.
 
 ![Tensorboard_imgs](imgs/img3.png)
@@ -98,5 +110,9 @@ After training, you can also run the code in **visualize** mode and get some of 
 ![Tensorboard_curves](imgs/img4.png)
 
 *Fig4. Original and reconstructed images for MNIST and Fashion-MNIST data generated in **visualize** mode*
+
+### 3.3. Adversary attack
+To do soon (already added to the code)
+
 
 

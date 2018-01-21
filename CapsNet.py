@@ -1,14 +1,15 @@
 import tensorflow as tf
 from config import *
-from utils import routing, squash
+from ops import routing, squash
 import numpy as np
 
 
 class CapsNet:
     def __init__(self):
-        self.X = tf.placeholder(shape=[None, args.img_w, args.img_h, args.n_ch], dtype=tf.float32, name="X")
-        self.Y = tf.placeholder(shape=[None, args.n_cls], dtype=tf.float32, name="Y")
-        self.mask_with_labels = tf.placeholder_with_default(False, shape=(), name="mask_with_labels")
+        with tf.variable_scope('Input'):
+            self.X = tf.placeholder(shape=[None, args.img_w, args.img_h, args.n_ch], dtype=tf.float32, name="X")
+            self.Y = tf.placeholder(shape=[None, args.n_cls], dtype=tf.float32, name="Y")
+            self.mask_with_labels = tf.placeholder_with_default(False, shape=(), name="mask_with_labels")
 
         self.build_network()
         self.loss()
@@ -73,40 +74,44 @@ class CapsNet:
 
     def loss(self):
         # 1. The margin loss
+        with tf.variable_scope('Margin_Loss'):
+            # max(0, m_plus-||v_c||)^2
+            present_error = tf.square(tf.maximum(0., args.m_plus - self.v_length))
+            # [batch_size, 10, 1, 1]
 
-        # max(0, m_plus-||v_c||)^2
-        present_error = tf.square(tf.maximum(0., args.m_plus - self.v_length))
-        # [batch_size, 10, 1, 1]
+            # max(0, ||v_c||-m_minus)^2
+            absent_error = tf.square(tf.maximum(0., self.v_length - args.m_minus))
+            # [batch_size, 10, 1, 1]
 
-        # max(0, ||v_c||-m_minus)^2
-        absent_error = tf.square(tf.maximum(0., self.v_length - args.m_minus))
-        # [batch_size, 10, 1, 1]
+            # reshape: [batch_size, 10, 1, 1] => [batch_size, 10]
+            present_error = tf.reshape(present_error, shape=(args.batch_size, -1))
+            absent_error = tf.reshape(absent_error, shape=(args.batch_size, -1))
 
-        # reshape: [batch_size, 10, 1, 1] => [batch_size, 10]
-        present_error = tf.reshape(present_error, shape=(args.batch_size, -1))
-        absent_error = tf.reshape(absent_error, shape=(args.batch_size, -1))
-
-        T_c = self.Y
-        # [batch_size, 10]
-        L_c = T_c * present_error + args.lambda_val * (1 - T_c) * absent_error
-        # [batch_size, 10]
-        self.margin_loss = tf.reduce_mean(tf.reduce_sum(L_c, axis=1), name="margin_loss")
+            T_c = self.Y
+            # [batch_size, 10]
+            L_c = T_c * present_error + args.lambda_val * (1 - T_c) * absent_error
+            # [batch_size, 10]
+            self.margin_loss = tf.reduce_mean(tf.reduce_sum(L_c, axis=1), name="margin_loss")
 
         # 2. The reconstruction loss
-        orgin = tf.reshape(self.X, shape=(args.batch_size, -1))
-        squared = tf.square(self.decoder_output - orgin)
-        self.reconstruction_err = tf.reduce_mean(squared, name="reconstruction_loss")
+        with tf.variable_scope('Reconstruction_Loss'):
+            orgin = tf.reshape(self.X, shape=(args.batch_size, -1))
+            squared = tf.square(self.decoder_output - orgin)
+            self.reconstruction_err = tf.reduce_mean(squared)
 
         # 3. Total loss
-        self.total_loss = tf.add(self.margin_loss, args.alpha * self.reconstruction_err, name="total_loss")
+        with tf.variable_scope('Total_Loss'):
+            self.total_loss = self.margin_loss + args.alpha * self.reconstruction_err
 
     def accuracy_calc(self):
-        correct_prediction = tf.equal(tf.to_int32(tf.argmax(self.Y, axis=1)), self.y_pred)
-        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        with tf.variable_scope('Accuracy'):
+            correct_prediction = tf.equal(tf.to_int32(tf.argmax(self.Y, axis=1)), self.y_pred)
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     def train_op(self):
-        optimizer = tf.train.AdamOptimizer()
-        self.train_op = optimizer.minimize(self.total_loss, name="training_op")
+        with tf.variable_scope('Optimizer'):
+            optimizer = tf.train.AdamOptimizer()
+            self.train_op = optimizer.minimize(self.total_loss, name="training_op")
 
     def summary_(self):
         recon_img = tf.reshape(self.decoder_output, shape=(args.batch_size, args.img_w, args.img_h, args.n_ch))

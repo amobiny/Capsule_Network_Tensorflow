@@ -1,5 +1,6 @@
 import argparse
 import tensorflow as tf
+import numpy as np
 
 parser = argparse.ArgumentParser()
 
@@ -9,10 +10,10 @@ parser.add_argument('--m_minus', default=0.1, help='m- parameter')
 parser.add_argument('--lambda_val', default=0.5, help='Down-weighting parameter for the absent class')
 
 # For reconstruction loss
-parser.add_argument('--alpha', default=.0005, help='Regularization coefficient to scale down the reconstruction loss')
+parser.add_argument('--alpha', default=0.0005, help='Regularization coefficient to scale down the reconstruction loss')
 
 # For training
-parser.add_argument('--mode', default='train', help='train, test or visualize')
+parser.add_argument('--mode', default='train', help='train, test, visualize, or adv_attack')
 parser.add_argument('--batch_size', default=128, help='Batch size')
 parser.add_argument('--epoch', default=50, help='Total number of training epochs')
 parser.add_argument('--iter_routing', default=3, help='Number of routing iterations')
@@ -32,7 +33,14 @@ parser.add_argument('--checkpoint_path', default='./saved_model/', help='path fo
 parser.add_argument('--log_dir', default='./log_dir/', help='logs directory (to save graph and summaries)')
 parser.add_argument('--results', default='./results/', help='path for saving the results')
 parser.add_argument('--tr_disp_sum', default=100, help='The frequency of saving train results (step)')
+
+# Visualize mode parameters
 parser.add_argument('--n_samples', default=5, help='Number of sample images to be saved in visualize mode')
+
+# Adversarial attack mode parameters (using the trained model)
+parser.add_argument('--max_iter', default=3, help='Number of iterations for basic iteration adversarial attack')
+parser.add_argument('--max_eps', default=np.array(range(0, 100, 5)) / 100.,
+                    help='Maximum epsilon values to be used in FGSM adversarial attack mode')
 args = parser.parse_args()
 
 # Parameters of Conv1_layer
