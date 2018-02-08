@@ -50,8 +50,8 @@ All in all, the main features of the code are:
 
  Data set | Validation accuracy | Validation Loss | Test Accuracy | Test Loss |
 :-----|:----:|:----:|:----|:----|
-MNIST | % 99.54 | 0.0095 | % 99.49 | 0.0095 |
-Fahion-MNIST | % 91.09 | 0.076 | % 90.71 | 0.079 |
+MNIST | % 99.44 | 0.0065 | % 99.34 | 0.0066 |
+Fahion-MNIST | % 91.17 | 0.069 | % 90.57 | 0.071 |
 
 ### 1.3. Dependencies
 - Python (2.7 preferably; also works fine with python 3)
