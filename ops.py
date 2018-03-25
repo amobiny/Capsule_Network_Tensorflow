@@ -10,7 +10,7 @@ def squash(s, epsilon=1e-7, name=None):
     :return: A tensor with the same shape as vector but squashed in 'vec_len' dimension.
     """
     with tf.name_scope(name, default_name="squash"):
-        squared_norm = tf.reduce_sum(tf.square(s), axis=-2, keep_dims=True)
+        squared_norm = tf.reduce_sum(tf.square(s), axis=-2, keepdims=True)
         safe_norm = tf.sqrt(squared_norm + epsilon)
         squash_factor = squared_norm / (1. + squared_norm)
         unit_vector = s / safe_norm
@@ -49,7 +49,7 @@ def routing(inputs, b_ij, out_caps_dim):
     # For r iterations do
     for r_iter in range(args.iter_routing):
         with tf.variable_scope('iter_' + str(r_iter)):
-            c_ij = tf.nn.softmax(b_ij, dim=2)
+            c_ij = tf.nn.softmax(b_ij, axis=2)
             # [batch_size, 1152, 10, 1, 1]
 
             # At last iteration, use `u_hat` in order to receive gradients from the following graph
@@ -64,7 +64,7 @@ def routing(inputs, b_ij, out_caps_dim):
 
             elif r_iter < args.iter_routing - 1:  # Inner iterations, do not apply backpropagation
                 s_j = tf.multiply(c_ij, u_hat_stopped)
-                s_j = tf.reduce_sum(s_j, axis=1, keep_dims=True)
+                s_j = tf.reduce_sum(s_j, axis=1, keepdims=True)
                 v_j = squash(s_j)
                 v_j_tiled = tf.tile(v_j, [1, inputs.shape[1].value, 1, 1, 1])
                 # [batch_size, 1152, 10, 16, 1]
