@@ -144,7 +144,7 @@ def load_and_save_to(start_epoch, num_train_batch):
 
 def evaluate(sess, model, x, y):
     acc_all = loss_all = pred_all = np.array([])
-    num_batch = y.shape[0] / args.batch_size
+    num_batch = int(y.shape[0] / args.batch_size)
     for i in range(num_batch):
         start_val = i * args.batch_size
         end_val = start_val + args.batch_size
