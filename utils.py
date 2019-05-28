@@ -7,6 +7,22 @@ import matplotlib.pyplot as plt
 
 from download import download_fashion_mnist
 
+def load_brain(mode='train'):
+    """
+    load the BRAIN data
+    :param mode: train or test
+    :return: train and validation images and labels in train mode, test images and labels in test mode
+            x: [#images, width, height, n_channels]
+            y: [#images, #classes=10] (one_hot_encoded)
+    """
+    if mode == 'train':
+
+        return x_train, y_train, x_valid, y_valid
+
+    elif mode == 'test':
+
+        return x_test, y_test
+
 
 def load_mnist(mode='train'):
     """
