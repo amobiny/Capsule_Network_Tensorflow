@@ -7,6 +7,22 @@ import matplotlib.pyplot as plt
 
 from download import download_fashion_mnist
 
+def load_brain(mode='train'):
+    """
+    load the BRAIN data
+    :param mode: train or test
+    :return: train and validation images and labels in train mode, test images and labels in test mode
+            x: [#images, width, height, n_channels]
+            y: [#images, #classes=10] (one_hot_encoded)
+    """
+    if mode == 'train':
+
+        return x_train, y_train, x_valid, y_valid
+
+    elif mode == 'test':
+
+        return x_test, y_test
+
 
 def load_mnist(mode='train'):
     """
@@ -144,7 +160,7 @@ def load_and_save_to(start_epoch, num_train_batch):
 
 def evaluate(sess, model, x, y):
     acc_all = loss_all = pred_all = np.array([])
-    num_batch = y.shape[0] / args.batch_size
+    num_batch = int(y.shape[0] / args.batch_size)
     for i in range(num_batch):
         start_val = i * args.batch_size
         end_val = start_val + args.batch_size
